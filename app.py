@@ -1,46 +1,45 @@
-from flask import Flask, render_template, request, redirect
-from flask_sqlalchemy import SQLAlchemy
-import config
+from flask import Flask, render_template, request
+from flask_mysqldb import MySQL
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql://{config.MYSQL_USER}:{config.MYSQL_PASSWORD}@{config.MYSQL_HOST}/{config.MYSQL_DB}"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+app.config['MYSQL_HOST'] = 'mysql'        # Use 'mysql' in Docker, 'localhost' locally
+app.config['MYSQL_USER'] = 'user'
+app.config['MYSQL_PASSWORD'] = 'password'
+app.config['MYSQL_DB'] = 'mydb'
 
-class Task(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(200), nullable=False)
-    done = db.Column(db.Boolean, default=False)
+mysql = MySQL(app)
+
+@app.before_request
+def create_tables():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(80) NOT NULL
+        )
+    """)
+    mysql.connection.commit()
+    cur.close()
 
 @app.route('/')
 def index():
-    tasks = Task.query.all()
-    return render_template('index.html', tasks=tasks)
+    # Example: Display form and list of users
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users")
+    users = cur.fetchall()
+    cur.close()
+    return render_template('index.html', users=users)
 
 @app.route('/add', methods=['POST'])
-def add():
-    task_content = request.form['content']
-    new_task = Task(content=task_content)
-    db.session.add(new_task)
-    db.session.commit()
-    return redirect('/')
-
-@app.route('/done/<int:id>')
-def done(id):
-    task = Task.query.get_or_404(id)
-    task.done = not task.done
-    db.session.commit()
-    return redirect('/')
-
-@app.route('/delete/<int:id>')
-def delete(id):
-    task = Task.query.get_or_404(id)
-    db.session.delete(task)
-    db.session.commit()
-    return redirect('/')
+def add_user():
+    name = request.form['name']
+    cur = mysql.connection.cursor()
+    cur.execute("INSERT INTO users (name) VALUES (%s)", [name])
+    mysql.connection.commit()
+    cur.close()
+    return 'User added'
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
+
