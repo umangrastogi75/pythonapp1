@@ -7,6 +7,12 @@ pipeline {
                 sh 'docker compose build'
             }
         }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html pythonapp'
+            }
+        }
         stage('Test') {
             steps {
                 sh 'docker compose up -d'
@@ -23,4 +29,3 @@ pipeline {
         }
     }
 }
-
