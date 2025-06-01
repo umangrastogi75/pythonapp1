@@ -8,7 +8,7 @@ pipeline {
             }
         }
     stages {
-        stage('Build') {
+        stage('trivy') {
             steps {
                 sh 'trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html pythonapp'
             }
