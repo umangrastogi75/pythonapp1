@@ -18,7 +18,7 @@ pipeline {
         stage('Deliver') {
             steps {
                 // Example: Push to a registry or deploy
-                // sh 'echo "Deliebred"'
+                 sh 'echo "Deliebred"'
             }
         }
     }
