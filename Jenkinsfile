@@ -12,6 +12,7 @@ pipeline {
             steps {
                 sh 'trivy image --format template --template "@contrib/html.tpl" -o trivy-report.html pythonapp'
             }
+        }
         
         stage('Test') {
             steps {
