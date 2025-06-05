@@ -10,7 +10,7 @@ pipeline {
     
         stage('trivy') {
             steps {
-                sh 'trivy image --format template --template /usr/local/share/trivy/templates/html.tpl -o trivy-report.html mysql:latest'
+                sh 'trivy image --format template --template "@/usr/local/share/trivy/templates/html.tpl" -o trivy-report.html mysql:latest'
                 //sh 'trivy image --format html -o trivy-report.html pythonapp'
 
             }
